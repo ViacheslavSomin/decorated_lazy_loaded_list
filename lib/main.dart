@@ -49,10 +49,11 @@ class _HomeState extends State<Home> {
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       setState(() {
-        print(
-            'max:${mainSC.position.maxScrollExtent} min:${mainSC.position.minScrollExtent}');
-        print('height:${context.size?.height}');
-        height = mainSC.position.maxScrollExtent - 40;
+        print('extentInside: ${mainSC.position.extentInside}');
+        print('extentAfter: ${mainSC.position.extentAfter}');
+
+        height =
+            mainSC.position.extentInside + mainSC.position.extentAfter - 40;
       });
     });
   }
@@ -65,43 +66,69 @@ class _HomeState extends State<Home> {
           backGroundSC.jumpTo(mainSC.offset);
           return false;
         },
-        child: SafeArea(
-          child: LayoutBuilder(builder: (context, constraints) {
-            print(constraints.maxHeight);
-            return Stack(
-              children: [
-                SingleChildScrollView(
-                  controller: backGroundSC,
+        child: Stack(
+          // fit: StackFit.expand,
+          children: [
+            SingleChildScrollView(
+              physics: ClampingScrollPhysics(),
+              controller: backGroundSC,
+              padding: EdgeInsets.all(20),
+              child: Container(
+                width: double.infinity,
+                height: height,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            GridView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.all(40),
+              physics: ClampingScrollPhysics(),
+              controller: mainSC,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                childAspectRatio: 0.6,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: 40,
+              itemBuilder: (context, index) {
+                print('$index');
+
+                return Container(
                   padding: EdgeInsets.all(20),
-                  child: Container(
-                    width: double.infinity,
-                    height: height + constraints.maxHeight,
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(20),
+                  color: Colors.black12,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '$index',
+                      style: TextStyle(fontSize: 36),
                     ),
                   ),
-                ),
-                ListView.builder(
-                  itemExtent: 100,
-                  controller: mainSC,
+                );
+              },
+            )
+            /* ListView.builder(
+              itemExtent: 100,
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              controller: mainSC,
+              padding: EdgeInsets.all(20),
+              itemCount: 5,
+              itemBuilder: (context, index) {
+                return Container(
                   padding: EdgeInsets.all(20),
-                  itemCount: 100,
-                  itemBuilder: (context, index) {
-                    print('$index');
-                    return Container(
-                      padding: EdgeInsets.all(20),
-                      color: Colors.black12,
-                      child: Text(
-                        '$index',
-                        style: TextStyle(fontSize: 36),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            );
-          }),
+                  color: Colors.black12,
+                  child: Text(
+                    '$index',
+                    style: TextStyle(fontSize: 36),
+                  ),
+                );
+              },
+            ), */
+          ],
         ),
       ),
     );
