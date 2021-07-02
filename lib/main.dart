@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 
 void main() {
   runApp(MyApp());
@@ -36,6 +37,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  late LinkedScrollControllerGroup _controllers;
   late ScrollController mainSC;
   late ScrollController backGroundSC;
 
@@ -44,8 +46,10 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    mainSC = ScrollController();
-    backGroundSC = ScrollController();
+    _controllers = LinkedScrollControllerGroup();
+
+    mainSC = _controllers.addAndGet();
+    backGroundSC = _controllers.addAndGet();
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       setState(() {
@@ -53,7 +57,7 @@ class _HomeState extends State<Home> {
         print('extentAfter: ${mainSC.position.extentAfter}');
 
         height =
-            mainSC.position.extentInside + mainSC.position.extentAfter - 40;
+            mainSC.position.extentInside + mainSC.position.extentAfter - 330;
       });
     });
   }
@@ -61,20 +65,16 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          backGroundSC.jumpTo(mainSC.offset);
-          return false;
-        },
+      body: SafeArea(
         child: Stack(
           // fit: StackFit.expand,
           children: [
             SingleChildScrollView(
-              physics: ClampingScrollPhysics(),
               controller: backGroundSC,
-              padding: EdgeInsets.all(20),
+              physics: ClampingScrollPhysics(),
+              padding: EdgeInsets.all(15),
               child: Container(
-                width: double.infinity,
+                margin: EdgeInsets.only(top: 300),
                 height: height,
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.5),
@@ -82,10 +82,57 @@ class _HomeState extends State<Home> {
                 ),
               ),
             ),
-            GridView.builder(
-              shrinkWrap: true,
-              padding: EdgeInsets.all(40),
+            CustomScrollView(
               physics: ClampingScrollPhysics(),
+              controller: mainSC,
+              shrinkWrap: true,
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.all(15),
+                  sliver: SliverToBoxAdapter(
+                    child: Container(
+                      color: Colors.blue[200]?.withOpacity(0.85),
+                      height: 300,
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: EdgeInsets.only(
+                    bottom: 30,
+                    left: 30,
+                    right: 30,
+                  ),
+                  sliver: SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.6,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        print('$index');
+                        return Container(
+                          padding: EdgeInsets.all(20),
+                          color: Colors.black12,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '$index',
+                              style: TextStyle(fontSize: 36),
+                            ),
+                          ),
+                        );
+                      },
+                      childCount: 100,
+                    ),
+                  ),
+                )
+              ],
+            )
+            /*  GridView.builder(
+              padding: EdgeInsets.all(40),
+              shrinkWrap: true,
               controller: mainSC,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
@@ -93,7 +140,7 @@ class _HomeState extends State<Home> {
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
-              itemCount: 40,
+              itemCount: 20,
               itemBuilder: (context, index) {
                 print('$index');
 
@@ -109,25 +156,7 @@ class _HomeState extends State<Home> {
                   ),
                 );
               },
-            )
-            /* ListView.builder(
-              itemExtent: 100,
-              shrinkWrap: true,
-              physics: ClampingScrollPhysics(),
-              controller: mainSC,
-              padding: EdgeInsets.all(20),
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                return Container(
-                  padding: EdgeInsets.all(20),
-                  color: Colors.black12,
-                  child: Text(
-                    '$index',
-                    style: TextStyle(fontSize: 36),
-                  ),
-                );
-              },
-            ), */
+            ) */
           ],
         ),
       ),
